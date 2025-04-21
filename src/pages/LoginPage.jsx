@@ -78,13 +78,14 @@ function LoginPage() {
 
       // If login successful, process response
       if (response.status === 200) {
-        const { userId, email, role } = response.data;
+        const { userId, email, role,organization } = response.data;
 
         // Store necessary data in localStorage
         localStorage.setItem("userId", userId);
         localStorage.setItem("email", email);
         localStorage.setItem("role", role);
         localStorage.setItem("isAuthenticated", "true");
+        localStorage.setItem("organization", organization);
 
         // Fetch permissions after successful login
         const permissionsResponse = await axios.get(`http://localhost:8080/permissions/role/${role}`);

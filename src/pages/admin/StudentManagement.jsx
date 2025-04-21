@@ -114,8 +114,11 @@ const StudentManagement = () => {
   const studentColumns = [
     { label: "Name", field: "name" },
     { label: "Email", field: "email" },
-    { label: "Program", field: "program" },
+    { label: "Gender", field: "gender" },
+    { label: "DOB", field: "dob" },
+    { label: "Address", field: "address" },
   ];
+  
 
   return (
     <div className="min-h-screen py-2 px-4">

@@ -1,289 +1,274 @@
-// LibrarianManagement.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
+import TableView from "../../assets/TableView"; // Import the reusable table component
 
 const LibrarianManagement = () => {
   const [librarians, setLibrarians] = useState([]);
-  const [newLibrarian, setNewLibrarian] = useState({
-    userId: '',
-    email: '',
-    password: '',
-    name: '',
-    dob: '',
-    address: '',
-    gender: 'MALE',
-    department: '',
+  const [showForm, setShowForm] = useState(false);
+  const [isEditing, setIsEditing] = useState(false); // To track if the user is editing
+  const [formData, setFormData] = useState({
+    userId: "",
+    email: "",
+    password: "",
+    name: "",
+    dob: "",
+    address: "",
+    gender: "MALE",
+    department: "", // Added department for librarian
+    role: "LIBRARIAN" // Default role for librarian
   });
-  const [isOpen, setIsOpen] = useState(false); // Controls popup visibility
-  const [editingLibrarian, setEditingLibrarian] = useState(null); // For editing librarian
 
-  // Fetch all librarians when the page loads
   useEffect(() => {
     fetchLibrarians();
   }, []);
 
-  // Fetch librarians from backend
   const fetchLibrarians = async () => {
     try {
-      const response = await fetch('/librarians');
+      const response = await fetch("http://localhost:8080/librarian/all");
       if (response.ok) {
         const data = await response.json();
         setLibrarians(data);
-      } else {
-        console.error('Error fetching librarians');
       }
     } catch (error) {
-      console.error('Error:', error);
+      console.error("Error:", error);
     }
   };
 
-  // Handle adding a new librarian
-  const handleAddLibrarian = async () => {
+  const handleEditLibrarian = (id) => {
+    const librarianToEdit = librarians.find(librarian => librarian.userId === id);
+    if (librarianToEdit) {
+      setFormData(librarianToEdit); // Populate form with existing data
+      setIsEditing(true); // Switch to editing mode
+      setShowForm(true); // Show the form
+    }
+  };
+
+  const handleDeleteLibrarian = async (userId) => {
     try {
-      const response = await fetch('/librarians/add', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newLibrarian),
+      const response = await fetch(`http://localhost:8080/librarian/delete/${userId}`, {
+        method: "DELETE",
       });
+
       if (response.ok) {
-        alert('Librarian added successfully!');
-        fetchLibrarians(); // Refresh the list
-        setIsOpen(false); // Close popup
-        resetForm();
+        alert("Librarian deleted successfully!");
+        fetchLibrarians();
       } else {
-        alert('Error adding librarian.');
+        alert("Error deleting librarian.");
       }
     } catch (error) {
-      console.error('Error:', error);
+      console.error("Error:", error);
     }
   };
 
-  // Handle editing a librarian
-  const handleEditLibrarian = async (id) => {
-    const librarian = librarians.find((librarian) => librarian.id === id);
-    setEditingLibrarian(librarian);
-    setNewLibrarian({ ...librarian });
-    setIsOpen(true); // Open the form to edit
-  };
-
-  // Handle deleting a librarian
-  const handleDeleteLibrarian = async (id) => {
-    try {
-      const response = await fetch(`/librarians/delete/${id}`, {
-        method: 'DELETE',
-      });
-      if (response.ok) {
-        alert('Librarian deleted successfully!');
-        fetchLibrarians(); // Refresh the list
-      } else {
-        alert('Error deleting librarian.');
-      }
-    } catch (error) {
-      console.error('Error:', error);
-    }
-  };
-
-  // Handle form input change
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setNewLibrarian((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
-  };
-
-  // Reset the form
-  const resetForm = () => {
-    setNewLibrarian({
-      userId: '',
-      email: '',
-      password: '',
-      name: '',
-      dob: '',
-      address: '',
-      gender: 'MALE',
-      department: '',
+    setFormData({
+      ...formData,
+      [name]: value
     });
   };
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const url = isEditing ? `http://localhost:8080/librarian/update/${formData.userId}` : "http://localhost:8080/librarian/add";
+    const method = isEditing ? "PUT" : "POST";
+
+    try {
+      const response = await fetch(url, {
+        method: method,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        alert(isEditing ? "Librarian updated successfully!" : "Librarian added successfully!");
+        fetchLibrarians();
+        setShowForm(false);
+        resetForm();
+        setIsEditing(false); // Reset editing mode
+      } else {
+        const errorData = await response.json();
+        alert(`Error: ${errorData.message || "Unknown error"}`);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      userId: "",
+      email: "",
+      password: "",
+      name: "",
+      dob: "",
+      address: "",
+      gender: "MALE",
+      department: "", // Reset department field
+      role: "LIBRARIAN" // Default role maintained in reset
+    });
+  };
+
+  const librarianColumns = [
+    { label: "Name", field: "name" },
+    { label: "Email", field: "email" },
+    { label: "Gender", field: "gender" },
+    { label: "DOB", field: "dob" },
+    { label: "Department", field: "department" },
+  ];
+
   return (
-    <div className="min-h-screen py-8">
-      {/* Add Librarian Button */}
-      <div className="flex justify-center mb-6">
+    <div className="min-h-screen py-2 px-4">
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold">Librarian Management</h1>
         <button
-          onClick={() => setIsOpen(true)}
-          className="py-2 px-6 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none"
+          onClick={() => {
+            setShowForm(!showForm);
+            setIsEditing(false); // Reset editing state when toggling the form
+          }}
+          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
         >
-          Add Librarian
+          {showForm ? "Cancel" : isEditing ? "Cancel Edit" : "Add Librarian"}
         </button>
       </div>
 
-      {/* List of Librarians */}
-      <div className="max-w-5xl mx-auto p-6 rounded-lg shadow-md">
-        <h2 className="text-2xl font-semibold text-center mb-6">Librarian List</h2>
-        <ul>
-          {librarians.length === 0 ? (
-            <p>No librarians added yet.</p>
-          ) : (
-            librarians.map((librarian) => (
-              <li key={librarian.id} className="flex justify-between items-center py-3 border-b">
-                <div>
-                  <strong>{librarian.name}</strong> - {librarian.email}
-                </div>
-                <div>
-                  <button
-                    onClick={() => handleEditLibrarian(librarian.id)}
-                    className="py-1 px-3 text-sm bg-yellow-400 text-white rounded-md mr-2"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDeleteLibrarian(librarian.id)}
-                    className="py-1 px-3 text-sm bg-red-500 text-white rounded-md"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </li>
-            ))
-          )}
-        </ul>
-      </div>
-
-      {/* Popup Form for Add/Edit Librarian */}
-      {isOpen && (
-        <div
-          className={`fixed inset-0 bg-opacity-50 flex justify-center items-center z-50 ${isOpen ? 'bg-gray-700' : 'bg-transparent'}`}
-        >
-          <div className="bg-white p-6 rounded-lg shadow-lg w-full sm:w-96 md:w-1/2 lg:w-1/3 xl:w-1/4">
-            <h2 className="text-2xl font-semibold text-center mb-6">{editingLibrarian ? 'Edit Librarian' : 'Add New Librarian'}</h2>
-            <form onSubmit={(e) => e.preventDefault()}>
-              {/* Form Fields */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                <div>
-                  <label htmlFor="userId" className="block text-sm font-medium text-gray-700">User ID</label>
-                  <input
-                    type="text"
-                    id="userId"
-                    name="userId"
-                    value={newLibrarian.userId}
-                    onChange={handleInputChange}
-                    required
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value={newLibrarian.email}
-                    onChange={handleInputChange}
-                    required
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
-                  <input
-                    type="password"
-                    id="password"
-                    name="password"
-                    value={newLibrarian.password}
-                    onChange={handleInputChange}
-                    required
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700">Name</label>
-                  <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    value={newLibrarian.name}
-                    onChange={handleInputChange}
-                    required
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="dob" className="block text-sm font-medium text-gray-700">Date of Birth</label>
-                  <input
-                    type="date"
-                    id="dob"
-                    name="dob"
-                    value={newLibrarian.dob}
-                    onChange={handleInputChange}
-                    required
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="address" className="block text-sm font-medium text-gray-700">Address</label>
-                  <textarea
-                    id="address"
-                    name="address"
-                    value={newLibrarian.address}
-                    onChange={handleInputChange}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  ></textarea>
-                </div>
-
-                <div>
-                  <label htmlFor="gender" className="block text-sm font-medium text-gray-700">Gender</label>
-                  <select
-                    id="gender"
-                    name="gender"
-                    value={newLibrarian.gender}
-                    onChange={handleInputChange}
-                    required
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  >
-                    <option value="MALE">Male</option>
-                    <option value="FEMALE">Female</option>
-                    <option value="OTHER">Other</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label htmlFor="department" className="block text-sm font-medium text-gray-700">Department</label>
-                  <input
-                    type="text"
-                    id="department"
-                    name="department"
-                    value={newLibrarian.department}
-                    onChange={handleInputChange}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  />
-                </div>
+      {showForm && (
+        <div className="bg-transparent p-6 rounded shadow-md mb-6">
+          <h2 className="text-xl font-semibold mb-4">{isEditing ? "Edit Librarian" : "Add New Librarian"}</h2>
+          <form onSubmit={handleSubmit}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">User ID</label>
+                <input
+                  type="text"
+                  name="userId"
+                  value={formData.userId}
+                  onChange={handleInputChange}
+                  className="w-full p-2 border rounded"
+                  required
+                  disabled={isEditing} // Disable User ID input while editing
+                />
               </div>
-
-              <div className="flex justify-between">
-                <button
-                  onClick={handleAddLibrarian}
-                  className="py-2 px-6 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700"
-                >
-                  Save
-                </button>
-                <button
-                  onClick={() => setIsOpen(false)}
-                  className="py-2 px-6 bg-gray-400 text-white font-semibold rounded-lg shadow-md hover:bg-gray-500"
-                >
-                  Cancel
-                </button>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  className="w-full p-2 border rounded"
+                  required
+                />
               </div>
-            </form>
-          </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  className="w-full p-2 border rounded"
+                  required
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                <input
+                  type="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  className="w-full p-2 border rounded"
+                  required
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Date of Birth</label>
+                <input
+                  type="date"
+                  name="dob"
+                  value={formData.dob}
+                  onChange={handleInputChange}
+                  className="w-full p-2 border rounded"
+                  required
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+                <select
+                  name="gender"
+                  value={formData.gender}
+                  onChange={handleInputChange}
+                  className="w-full p-2 border rounded"
+                  required
+                >
+                  <option value="MALE">Male</option>
+                  <option value="FEMALE">Female</option>
+                  <option value="OTHER">Other</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Department</label>
+                <input
+                  type="text"
+                  name="department"
+                  value={formData.department}
+                  onChange={handleInputChange}
+                  className="w-full p-2 border rounded"
+                  required
+                />
+              </div>
+            </div>
+            
+            <div className="col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1 mt-4">Address</label>
+              <textarea
+                name="address"
+                value={formData.address}
+                onChange={handleInputChange}
+                className="w-full p-2 border rounded"
+                rows="3"
+                required
+              ></textarea>
+            </div>
+            
+            <div className="flex justify-end mt-6 gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowForm(false);
+                  resetForm();
+                  setIsEditing(false); // Reset editing state
+                }}
+                className="bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"
+              >
+                {isEditing ? "Update Librarian" : "Save Librarian"}
+              </button>
+            </div>
+          </form>
         </div>
       )}
+
+      <TableView
+        columns={librarianColumns}
+        data={librarians}
+        onEdit={handleEditLibrarian}
+        onDelete={handleDeleteLibrarian}
+      />
     </div>
   );
 };

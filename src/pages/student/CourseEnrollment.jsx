@@ -51,7 +51,7 @@ const courses = [
               <h2 className="text-xl font-semibold">{course.name}</h2>
               <p className="text-gray-600">{course.description}</p>
               <button className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-md">
-                Enroll
+                Details..
               </button>
             </div>
           ))}

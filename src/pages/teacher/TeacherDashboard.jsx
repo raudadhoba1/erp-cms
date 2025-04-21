@@ -3,9 +3,9 @@ import { FaChalkboardTeacher, FaBook, FaUserGraduate, FaBullhorn, FaClipboardLis
 
 const TeacherDashboard = () => {
   const [courses, setCourses] = useState([
-    { id: 1, name: "Mathematics", students: 30 },
-    { id: 2, name: "Physics", students: 25 },
-    { id: 3, name: "Computer Science", students: 40 },
+    { id: 1, name: "Data Science", students: 30 },
+    { id: 2, name: "Machine Learning", students: 25 },
+    { id: 3, name: "Web Development", students: 40 },
   ]);
 
   return (

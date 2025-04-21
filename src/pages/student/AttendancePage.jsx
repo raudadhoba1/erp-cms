@@ -1,15 +1,15 @@
 import { useState } from "react";
 
 const AttendancePage = () => {
-  const [subjects] = useState(["Math", "Science", "English", "History"]);
+  const [subjects] = useState(["C", "Data Science", "Java", "Math"]);
   const [selectedSubject, setSelectedSubject] = useState(null);
   const [attendance, setAttendance] = useState([
-    { subject: "Math", date: "2025-03-01", period: "1", status: "Present" },
-    { subject: "Math", date: "2025-03-02", period: "2", status: "Absent" },
-    { subject: "Science", date: "2025-03-01", period: "1", status: "Present" },
-    { subject: "Science", date: "2025-03-03", period: "3", status: "Present" },
-    { subject: "English", date: "2025-03-01", period: "2", status: "Absent" },
-    { subject: "History", date: "2025-03-05", period: "1", status: "Present" },
+    { subject: "C", date: "2025-03-01", period: "1", status: "Present" },
+    { subject: "C", date: "2025-03-02", period: "2", status: "Absent" },
+    { subject: "Data Science", date: "2025-03-01", period: "1", status: "Present" },
+    { subject: "Data Science", date: "2025-03-03", period: "3", status: "Present" },
+    { subject: "Java", date: "2025-03-01", period: "2", status: "Absent" },
+    { subject: "Math", date: "2025-03-05", period: "1", status: "Present" },
   ]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);

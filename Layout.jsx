@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const Layout = ({ children }) => {
-  const [sidebarContent, setSidebarContent] = useState([]); // Sidebar data (can be filled later)
+  const [sidebarContent, setSidebarContent] = useState([]); // Sidebar data
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false); // Sidebar expanded/collapsed state
   const [selectedItem, setSelectedItem] = useState(null); // Selected sidebar item
   const [hoveredItemId, setHoveredItemId] = useState(null); // Hovered sidebar item
@@ -15,19 +15,16 @@ const Layout = ({ children }) => {
 
   const role = localStorage.getItem("role");
   const organization = localStorage.getItem("organization");
-  //const isAuthenticated = localStorage.getItem("isAuthenticated");
 
   useEffect(() => {
     const isAuthenticated = localStorage.getItem("isAuthenticated");
   
-    // If not authenticated or essential data is missing, forcefully log out and redirect to login
     if (isAuthenticated !== "true" || !localStorage.getItem("role")) {
       localStorage.clear(); // Clear localStorage to ensure the user is logged out
       navigate("/login"); // Redirect to login page
     }
-  }, [navigate]); // Empty array ensures this runs once when the component is mounted
+  }, [navigate]);
   
-
   useEffect(() => {
     const fetchUserDetails = async () => {
       setIsLoading(true);
@@ -74,21 +71,18 @@ const Layout = ({ children }) => {
   };
 
   const handleClick = (item) => {
+    setSelectedItem(item.id); // Set selected item ID
     // Check if the item has a permission route, if yes, navigate to it
     if (item.permissionPage) {
-      // Ensure the role is appended only once before permissionPage
       navigate(`/${role.toLowerCase()}/${item.permissionPage.toLowerCase()}`, { replace: true });
-      
     }
   };
   
-  
-
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", margin: 0, padding: 0 }}>
       {/* Header */}
       <div
-        className="header d-flex align-items-center justify-content-between"
+        className="header"
         style={{
           position: "fixed",
           top: 0,
@@ -105,25 +99,34 @@ const Layout = ({ children }) => {
           alignItems: "center",
         }}
       >
-        <h2>{organization}</h2>
+        <div className="organization-name text-4xl">
+        <h1><b>{organization}</b></h1>
+        </div>
 
         {/* User Info (Icon and Name) */}
-        <div className="d-flex align-items-center" style={{ marginLeft: "auto", justifyContent: "flex-start" }}>
+        <div 
+          style={{ 
+            display: "flex", 
+            alignItems: "center", 
+            marginLeft: "auto",
+            cursor: "pointer",
+          }}
+          onClick={toggleProfileVisibility}
+        >
           {/* Profile Icon */}
           <FaUserCircle
             size={30}
-            style={{ marginRight: "10px", cursor: "pointer" }}
-            onClick={toggleProfileVisibility} // Toggle profile visibility on click
+            style={{ marginRight: "10px" }}
           />
           
           {/* Name and Role Container */}
-          <div className="text-left">
-            <span className="d-block" style={{ fontSize: "1rem" }}>
-              {localStorage.getItem("name")}
+          <div style={{ textAlign: "left" }}>
+            <span style={{ fontSize: "1rem", display: "block" }}>
+              {userDetails?.name || localStorage.getItem("name") || "User"}
             </span>
-            <p className="mb-0" style={{ fontSize: "0.5rem" }}>
-              {role}
-            </p>
+            <span style={{ fontSize: "0.75rem", opacity: 0.8 }}>
+              {role || "Guest"}
+            </span>
           </div>
         </div>
       </div>
@@ -208,18 +211,21 @@ const Layout = ({ children }) => {
                   textOverflow: "ellipsis",
                   display: "flex",
                   alignItems: "center",
-                  backgroundColor: hoveredItemId === item.id ? "#4b5b8a" : "transparent",
+                  margin: "5px 10px",
+                  borderRadius: "5px",
+                  backgroundColor: hoveredItemId === item.id ? "#4b5b8a" : 
+                                   selectedItem === item.id ? "#38386c" : "transparent",
+                  transition: "background-color 0.2s ease, color 0.2s ease",
+                  color: (hoveredItemId === item.id || selectedItem === item.id) ? "#ffffff" : "#ccc",
                 }}
                 onMouseEnter={() => setHoveredItemId(item.id)}
                 onMouseLeave={() => setHoveredItemId(null)}
-                onClick={() => handleClick(item)} // Set the selected item on click
+                onClick={() => handleClick(item)}
               >
-                {isSidebarExpanded || hoveredItemId === item.id ? (
-                  <>
-                    <span>{item.name}</span> {/* Display permission name */}
-                  </>
+                {isSidebarExpanded ? (
+                  <span>{item.name}</span> /* Display permission name when expanded */
                 ) : (
-                  <span>{item.permissionCode}</span> // Display code when collapsed
+                  <span>{item.permissionCode}</span> /* Display code when collapsed */
                 )}
               </li>
             ))}
@@ -231,11 +237,10 @@ const Layout = ({ children }) => {
           className="main-page"
           style={{
             flex: 1,
-            padding: "10px",
-            backgroundColor: "#101125",
+            padding: "20px",
+            backgroundColor: "#101125", 
             color: "#ffffff",
             overflowY: "auto",
-            paddingTop: "60px",
           }}
         >
           {children}

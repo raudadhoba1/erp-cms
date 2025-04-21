@@ -1,6 +1,45 @@
 import React from 'react';
+import { useEffect, useState } from 'react';
+import axios from 'axios';
 
 const AdminDashboard = () => {
+
+  const [dashboardData, setDashboardData] = useState({
+    totalStudents: 0,
+    totalCourses: 0,
+    totalFaculty: 0,
+  });
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const response = await axios.get('http://localhost:8080/api/dashboard/total-students'); // Replace with your API endpoint
+        setDashboardData(prevData => ({
+          ...prevData,
+          totalStudents: response.data,  // Assuming the API returns just the count
+        }));
+
+        const coursesResponse = await axios.get('http://localhost:8080/api/dashboard/total-programs'); // Replace with your API endpoint
+        setDashboardData(prevData => ({
+          ...prevData,
+          totalCourses: coursesResponse.data,
+        }));
+
+        const facultyResponse = await axios.get('http://localhost:8080/api/dashboard/total-faculty');
+        setDashboardData(prevData => ({
+          ...prevData,
+          totalFaculty: facultyResponse.data,
+        }));
+
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+      }
+    };
+
+    fetchDashboardData();  
+  }, []); 
+
+
+
   return (
     <div className="p-6 space-y-6 bg-gray-900 min-h-screen">
       {/* Overview Section */}
@@ -8,17 +47,17 @@ const AdminDashboard = () => {
         {/* Card 1: Total Students */}
         <div className="bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700 flex flex-col items-center">
           <h3 className="text-xl font-semibold text-white">Total Students</h3>
-          <p className="text-4xl font-bold text-blue-400">1,230</p>
+          <p className="text-4xl font-bold text-blue-400">{dashboardData.totalStudents}</p>
         </div>
         {/* Card 2: Total Courses */}
         <div className="bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700 flex flex-col items-center">
           <h3 className="text-xl font-semibold text-white">Total Courses</h3>
-          <p className="text-4xl font-bold text-green-400">50</p>
+          <p className="text-4xl font-bold text-green-400">{dashboardData.totalCourses}</p>
         </div>
         {/* Card 3: Total Faculty */}
         <div className="bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700 flex flex-col items-center">
           <h3 className="text-xl font-semibold text-white">Total Faculty</h3>
-          <p className="text-4xl font-bold text-yellow-400">120</p>
+          <p className="text-4xl font-bold text-yellow-400">{dashboardData.totalFaculty}</p>
         </div>
       </div>
 
@@ -61,7 +100,7 @@ const AdminDashboard = () => {
         {/* Card 6: Active Students */}
         <div className="bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700 flex flex-col items-center">
           <h3 className="text-xl font-semibold text-white">Active Students</h3>
-          <p className="text-4xl font-bold text-teal-400">1,150</p>
+          <p className="text-4xl font-bold text-teal-400">{dashboardData.totalStudents}</p>
         </div>
       </div>
 
